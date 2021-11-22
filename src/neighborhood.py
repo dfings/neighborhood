@@ -44,7 +44,7 @@ def parse_street_address(street_address: str) -> StreetAddress:
     try:
         normalized = scourgify.normalize_address_record(street_address)
     except scourgify.exceptions.UnParseableAddressError as e:
-        raise ValueError(e)
+        raise ValueError(e) from e
     parsed, _ = usaddress.tag(normalized["address_line_1"])
     street_number: str = parsed.get("AddressNumber")
     if not street_number:
