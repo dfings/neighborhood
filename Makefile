@@ -1,24 +1,26 @@
-.PHONY: build run run_docker run_docker_image test venv
+.PHONY: build clean run run_docker run_docker_image test venv
 
 .DEFAULT_GOAL = run
 .SHELLFLAGS = -ec
 
 # Constants
 APP_NAME = neighborhood
-FUNCTION_TARGET = handle_request
 
 # Builds a local Docker image with pack.
-build:
+build: clean
 	pack build $(APP_NAME) \
 		--path src \
-		--env GOOGLE_FUNCTION_TARGET=$(FUNCTION_TARGET) \
 		--builder gcr.io/buildpacks/builder:v1
+
+# Deletes the __pycache__ directories.
+clean:
+	find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__ -delete
 
 # Runs a local debug server.
 run:
 	. .venv/bin/activate; \
 	cd src; \
-	functions-framework --target $(FUNCTION_TARGET) --debug
+	uvicorn server:app --reload --port 5001
 
 # Builds and runs a local Docker image.
 run_docker: build run_docker_image

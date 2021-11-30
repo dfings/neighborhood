@@ -1,20 +1,10 @@
 #! /usr/bin/env python
 
 from dataclasses import asdict
-import json
 
 import click
-import flask
 
 from neighborhood import find
-
-
-def find_json(address: str) -> str:
-    return json.dumps([asdict(r) for r in find(address)])
-
-
-def handle_request(request: flask.Request) -> str:
-    return find_json(request.args.get("address", ""))
 
 
 # pylint: disable=no-value-for-parameter
@@ -22,7 +12,7 @@ def handle_request(request: flask.Request) -> str:
 @click.command()
 @click.argument("address")
 def run_cli(address: str) -> None:
-    print(find_json(address))
+    print([asdict(r) for r in find(address)])
 
 
 if __name__ == "__main__":
