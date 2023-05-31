@@ -21,8 +21,9 @@ import scourgify
 import usaddress
 
 
-_data: Final = pd.read_csv(
-    os.path.join(os.path.dirname(__file__), "data/neighborhood_data.tsv"), "\t"
+_DATA: Final = pd.read_csv(
+    os.path.join(os.path.dirname(__file__), "data/neighborhood_DATA.tsv"),
+    sep="\t",
 )
 
 
@@ -43,8 +44,8 @@ def parse_street_address(street_address: str) -> StreetAddress:
         raise ValueError("Empty address")
     try:
         normalized = scourgify.normalize_address_record(street_address)
-    except scourgify.exceptions.UnParseableAddressError as e:
-        raise ValueError(e) from e
+    except scourgify.exceptions.UnParseableAddressError as ex:
+        raise ValueError(ex) from ex
     parsed, _ = usaddress.tag(normalized["address_line_1"])
     street_number: str = parsed.get("AddressNumber")
     if not street_number:
@@ -72,11 +73,11 @@ def find(raw_street_address: str) -> List[Result]:
         street_address = parse_street_address(raw_street_address)
     except ValueError:
         return []
-    name_restrict = _data["StreetName"] == street_address.name
-    type_restrict = _data["StreetType"] == street_address.type
-    street_data = _data[name_restrict & type_restrict]
+    name_restrict = _DATA["StreetName"] == street_address.name
+    type_restrict = _DATA["StreetType"] == street_address.type
+    street_data = _DATA[name_restrict & type_restrict]
     if street_data.empty:
-        street_data = _data[name_restrict]
+        street_data = _DATA[name_restrict]
     matches = street_data[
         (street_data["SideCode"].isin([street_address.side_code, "A"]))
         & (street_data["HouseNumLo"] <= street_address.number)
