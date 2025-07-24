@@ -1,7 +1,4 @@
-black
-flake8
-mccabe
 mypy
 pep8-naming
-pylint
 pytest
+ruff

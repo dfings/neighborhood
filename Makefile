@@ -33,7 +33,7 @@ test:
 	. ./.venv/bin/activate; \
 	pytest -vv; \
 	mypy --strict --allow-untyped-decorators --ignore-missing-imports src; \
-	flake8 --max-line-length 99 src
+	ruff check src
 
 # Sets up the virtual environment.
 venv:
