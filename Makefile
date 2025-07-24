@@ -31,14 +31,12 @@ run_docker_image:
 
 test:
 	. ./.venv/bin/activate; \
-	pytest; \
+	pytest -vv; \
 	mypy --strict --allow-untyped-decorators --ignore-missing-imports src; \
 	flake8 --max-line-length 99 src
 
 # Sets up the virtual environment.
 venv:
-	python -m venv .venv; \
-	source .venv/bin/activate; \
-	python -m pip install --upgrade pip wheel; \
-	python -m pip install -r src/requirements.txt; \
-	python -m pip install -r src/requirements-test.txt
+	uv venv --clear; \
+	uv pip install -r src/requirements.txt; \
+	uv pip install -r src/requirements-test.txt
