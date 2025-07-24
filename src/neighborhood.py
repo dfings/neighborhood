@@ -16,14 +16,14 @@ import os
 import string
 from typing import Final, List
 
-import pandas as pd
+import polars as pl
 import scourgify
 import usaddress
 
 
-_DATA: Final = pd.read_csv(
-    os.path.join(os.path.dirname(__file__), "data/neighborhood_DATA.tsv"),
-    sep="\t",
+_DATA: Final = pl.read_csv(
+    os.path.join(os.path.dirname(__file__), "data/neighborhood_data.tsv"),
+    separator="\t",
 )
 
 
@@ -73,16 +73,16 @@ def find(raw_street_address: str) -> List[Result]:
         street_address = parse_street_address(raw_street_address)
     except ValueError:
         return []
-    name_restrict = _DATA["StreetName"] == street_address.name
-    type_restrict = _DATA["StreetType"] == street_address.type
-    street_data = _DATA[name_restrict & type_restrict]
-    if street_data.empty:
-        street_data = _DATA[name_restrict]
-    matches = street_data[
-        (street_data["SideCode"].isin([street_address.side_code, "A"]))
-        & (street_data["HouseNumLo"] <= street_address.number)
-        & (street_data["HouseNumHi"] >= street_address.number)
-    ]
+    name_restrict = pl.col("StreetName") == street_address.name
+    type_restrict = pl.col("StreetType") == street_address.type
+    street_data = _DATA.filter(name_restrict & type_restrict)
+    if street_data.is_empty():
+        street_data = _DATA.filter(name_restrict)
+    matches = street_data.filter(
+        (pl.col("SideCode").is_in([street_address.side_code, "A"]))
+        & (pl.col("HouseNumLo") <= street_address.number)
+        & (pl.col("HouseNumHi") >= street_address.number)
+    )
     return sorted(
-        {Result(row["District"], row["Neighborhood"]) for _, row in matches.iterrows()}
+        {Result(row["District"], row["Neighborhood"]) for row in matches.to_dicts()}
     )
