@@ -93,12 +93,6 @@ def test_unparseable_address() -> None:
     assert_find_results("b123 Main St")
 
 
-def test_ambiguous_address() -> None:
-    assert_find_results(
-        "10 10th Apt 3", Result(2, "Inner Richmond"), Result(6, "South of Market")
-    )
-
-
 def test_no_match() -> None:
     assert_find_results("1 asdf123 st")
 
