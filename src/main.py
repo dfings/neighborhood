@@ -1,7 +1,5 @@
 #! /usr/bin/env python
 
-from dataclasses import asdict
-
 import click
 
 from neighborhood import find
@@ -12,7 +10,7 @@ from neighborhood import find
 @click.command()
 @click.argument("address")
 def run_cli(address: str) -> None:
-    print([asdict(r) for r in find(address)])
+    print([r.model_dump() for r in find(address)])
 
 
 if __name__ == "__main__":
