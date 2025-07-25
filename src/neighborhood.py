@@ -14,9 +14,10 @@ HouseNumHi.
 import os
 import string
 from typing import Final, List
+from typing_extensions import Annotated
 
 import polars as pl
-from pydantic import BaseModel
+from pydantic import BaseModel, StringConstraints
 import scourgify
 import usaddress
 
@@ -29,8 +30,8 @@ _DATA: Final = pl.read_csv(
 
 class StreetAddress(BaseModel, frozen=True):
     number: int
-    name: str
-    type: str
+    name: Annotated[str, StringConstraints(to_lower=True)]
+    type: Annotated[str, StringConstraints(to_lower=True)]
 
     @property
     def side_code(self) -> str:
@@ -51,8 +52,8 @@ def parse_street_address(street_address: str) -> StreetAddress:
         raise ValueError(str(parsed))
     return StreetAddress(
         number=int(street_number.rstrip(string.ascii_letters)),
-        name=parsed.get("StreetName", "").lower(),
-        type=parsed.get("StreetNamePostType", "").lower(),
+        name=parsed.get("StreetName", ""),
+        type=parsed.get("StreetNamePostType", ""),
     )
 
 
