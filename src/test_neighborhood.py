@@ -8,9 +8,9 @@ def assert_parse(
     street_address: str, street_number: int, street_name: str, street_type: str
 ) -> None:
     expected = neighborhood.StreetAddress(
-        street_number,
-        street_name,
-        street_type,
+        number=street_number,
+        name=street_name,
+        type=street_type,
     )
     assert neighborhood.parse_street_address(street_address) == expected
 
@@ -55,35 +55,42 @@ def assert_find_results(street_address: str, *results: Result) -> None:
 
 
 def test_street_match() -> None:
-    assert_find_results("123 Main St", Result(6, "Financial District/South Beach"))
+    assert_find_results(
+        "123 Main St", Result(district=6, neighborhood="Financial District/South Beach")
+    )
 
 
 def test_padded_street_match() -> None:
     assert_find_results(
-        "   123 Main St   ", Result(6, "Financial District/South Beach")
+        "   123 Main St   ",
+        Result(district=6, neighborhood="Financial District/South Beach"),
     )
 
 
 def test_full_address() -> None:
     assert_find_results(
         "123 Main St, San Francisco, CA 94105",
-        Result(6, "Financial District/South Beach"),
+        Result(district=6, neighborhood="Financial District/South Beach"),
     )
 
 
 def test_street_type_missing_find() -> None:
-    assert_find_results("123 Main", Result(6, "Financial District/South Beach"))
+    assert_find_results(
+        "123 Main", Result(district=6, neighborhood="Financial District/South Beach")
+    )
 
 
 def test_junk_suffix() -> None:
     assert_find_results(
-        "123 Main Suite 100", Result(6, "Financial District/South Beach")
+        "123 Main Suite 100",
+        Result(district=6, neighborhood="Financial District/South Beach"),
     )
 
 
 def test_random_suffix() -> None:
     assert_find_results(
-        "123 Main Suite 100", Result(6, "Financial District/South Beach")
+        "123 Main Suite 100",
+        Result(district=6, neighborhood="Financial District/South Beach"),
     )
 
 

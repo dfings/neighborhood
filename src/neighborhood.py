@@ -11,12 +11,12 @@ and the street number is in the range defined by SideCode, HouseNumLo, and
 HouseNumHi.
 """
 
-from dataclasses import dataclass
 import os
 import string
 from typing import Final, List
 
 import polars as pl
+from pydantic import BaseModel
 import scourgify
 import usaddress
 
@@ -27,8 +27,7 @@ _DATA: Final = pl.read_csv(
 )
 
 
-@dataclass(frozen=True)
-class StreetAddress:
+class StreetAddress(BaseModel, frozen=True):
     number: int
     name: str
     type: str
@@ -51,14 +50,13 @@ def parse_street_address(street_address: str) -> StreetAddress:
     if not street_number:
         raise ValueError(str(parsed))
     return StreetAddress(
-        int(street_number.rstrip(string.ascii_letters)),
-        parsed.get("StreetName", "").lower(),
-        parsed.get("StreetNamePostType", "").lower(),
+        number=int(street_number.rstrip(string.ascii_letters)),
+        name=parsed.get("StreetName", "").lower(),
+        type=parsed.get("StreetNamePostType", "").lower(),
     )
 
 
-@dataclass(frozen=True, order=True)
-class Result:
+class Result(BaseModel, frozen=True):
     district: int
     neighborhood: str
 
@@ -84,5 +82,9 @@ def find(raw_street_address: str) -> List[Result]:
         & (pl.col("HouseNumHi") >= street_address.number)
     )
     return sorted(
-        {Result(row["District"], row["Neighborhood"]) for row in matches.to_dicts()}
+        {
+            Result(district=row["District"], neighborhood=row["Neighborhood"])
+            for row in matches.to_dicts()
+        },
+        key=lambda r: (r.district, r.neighborhood),
     )
