@@ -13,7 +13,7 @@ Sample usage:
 
 import sys
 
-import pandas as pd
+import polars as pl
 
 OUTPUT_COLUMNS = [
     "StreetName",
@@ -28,17 +28,20 @@ OUTPUT_COLUMNS = [
 
 def join_election_data(election_filename: str, precinct_filename: str) -> None:
     """Joins the two datasets and outputs to stdout."""
-    election_data = pd.read_csv(election_filename, "\t", low_memory=False)
-    precinct_data = pd.read_csv(precinct_filename, "\t")
-    assert precinct_data["PrecinctID"].is_unique
-    data = pd.merge(election_data, precinct_data, on="PrecinctID", how="inner")
+    election_data = pl.read_csv(election_filename, separator="\t")
+    precinct_data = pl.read_csv(precinct_filename, separator="\t")
+    assert precinct_data["PrecinctID"].is_unique().all()
+    data = election_data.join(precinct_data, on="PrecinctID", how="inner")
     # Filter out weird records
-    data = data[~data["StreetName"].str.startswith("@")]
-    data["StreetName"] = data["StreetName"].str.lower()
-    data["StreetType"] = data["StreetType"].str.lower()
-    data["SideCode"] = data["SideCode"].str.upper()
-    data.sort_values(by=OUTPUT_COLUMNS, inplace=True)
-    data.to_csv(sys.stdout, sep="\t", index=False, columns=OUTPUT_COLUMNS)
+    data = data.filter(~pl.col("StreetName").str.starts_with("@"))
+    data = data.with_columns(
+        pl.col("StreetName").str.to_lowercase(),
+        pl.col("StreetType").str.to_lowercase(),
+        pl.col("SideCode").str.to_uppercase(),
+    )
+    data = data.sort(by=OUTPUT_COLUMNS)
+    data.select(OUTPUT_COLUMNS).write_csv(sys.stdout, separator='\t')
+
 
 
 if __name__ == "__main__":
